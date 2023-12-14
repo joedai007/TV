@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -19,7 +20,7 @@ import com.fongmi.android.tv.api.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.Utils;
+import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -38,7 +39,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(getBinding().getRoot());
         EventBus.getDefault().register(this);
-        Utils.hideSystemUI(this);
+        Util.hideSystemUI(this);
+        setBackCallback();
         setWall();
         initView();
         initEvent();
@@ -52,10 +54,17 @@ public abstract class BaseActivity extends AppCompatActivity {
         return true;
     }
 
+    protected boolean handleBack() {
+        return false;
+    }
+
     protected void initView() {
     }
 
     protected void initEvent() {
+    }
+
+    protected void onBackPress() {
     }
 
     protected boolean isVisible(View view) {
@@ -68,6 +77,15 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void notifyItemChanged(RecyclerView view, ArrayObjectAdapter adapter) {
         if (!view.isComputingLayout()) adapter.notifyArrayItemRangeChanged(0, adapter.size());
+    }
+
+    private void setBackCallback() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(handleBack()) {
+            @Override
+            public void handleOnBackPressed() {
+                onBackPress();
+            }
+        });
     }
 
     private void setWall() {
@@ -105,13 +123,13 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Utils.hideSystemUI(this);
+        Util.hideSystemUI(this);
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) Utils.hideSystemUI(this);
+        if (hasFocus) Util.hideSystemUI(this);
     }
 
     @Override

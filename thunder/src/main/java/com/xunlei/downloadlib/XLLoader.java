@@ -1,7 +1,5 @@
 package com.xunlei.downloadlib;
 
-import com.ghost.thunder.BuildConfig;
-import com.github.catvod.utils.Github;
 import com.xunlei.downloadlib.parameter.BtIndexSet;
 import com.xunlei.downloadlib.parameter.BtSubTaskDetail;
 import com.xunlei.downloadlib.parameter.GetDownloadLibVersion;
@@ -15,8 +13,8 @@ import com.xunlei.downloadlib.parameter.XLTaskLocalUrl;
 class XLLoader {
 
     public XLLoader() {
-        System.load(Github.getSo("xl_stat_" + BuildConfig.FLAVOR));
-        System.load(Github.getSo("xl_thunder_sdk_" + BuildConfig.FLAVOR));
+        System.loadLibrary("xl_stat");
+        System.loadLibrary("xl_thunder_sdk");
     }
 
     public native int createBtMagnetTask(String str, String str2, String str3, GetTaskId getTaskId);

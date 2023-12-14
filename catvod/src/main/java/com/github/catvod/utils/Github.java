@@ -1,12 +1,14 @@
 package com.github.catvod.utils;
 
+import android.net.Uri;
+
 import com.github.catvod.net.OkHttp;
 
 import java.io.File;
 
 public class Github {
 
-    public static final String URL = "https://fongmi.cachefly.net/FongMi/Release/main";
+    public static final String URL = "https://my.t4tv.hz.cz";
 
     private static String getUrl(String path, String name) {
         return URL + "/" + path + "/" + name;
@@ -20,21 +22,14 @@ public class Github {
         return getUrl("apk/" + (dev ? "dev" : "release"), name + ".apk");
     }
 
-    public static String getSo(String name) {
+    public static String getSo(String url) {
         try {
-            File file = Path.so(name);
-            moveExist(Path.externalCache(), file);
-            moveExist(Path.externalFiles(), file);
-            String url = name.startsWith("http") ? name : getUrl("so", file.getName());
+            File file = new File(Path.so(), Uri.parse(url).getLastPathSegment());
             if (file.length() < 300) Path.write(file, OkHttp.newCall(url).execute().body().bytes());
             return file.getAbsolutePath();
         } catch (Exception e) {
+            e.printStackTrace();
             return "";
         }
-    }
-
-    private static void moveExist(File path, File file) {
-        File temp = new File(path, file.getName());
-        if (temp.exists()) Path.move(temp, file);
     }
 }

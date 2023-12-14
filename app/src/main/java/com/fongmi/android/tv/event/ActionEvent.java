@@ -20,7 +20,15 @@ public class ActionEvent {
     }
 
     public static void update() {
-        EventBus.getDefault().post(new ActionEvent(UPDATE));
+        send(UPDATE);
+    }
+
+    public static void next() {
+        send(NEXT);
+    }
+
+    public static void pause() {
+        send(PAUSE);
     }
 
     public ActionEvent(String action) {

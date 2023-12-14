@@ -25,10 +25,11 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     private DefaultTimeBar timeBar;
 
     private Runnable runnable;
-    private Players listener;
+    private Players player;
 
     private long currentDuration;
     private long currentPosition;
+    private long currentBuffered;
     private boolean scrubbing;
 
     public CustomSeekView(Context context) {
@@ -58,14 +59,14 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
         timeBar.addListener(this);
     }
 
-    public void setListener(Players players) {
-        listener = players;
-        positionView.setText(listener.stringToTime(0));
-        durationView.setText(listener.stringToTime(0));
+    public void setListener(Players player) {
+        positionView.setText(player.stringToTime(0));
+        durationView.setText(player.stringToTime(0));
+        this.player = player;
     }
 
     private void seekToTimeBarPosition(long positionMs) {
-        listener.seekTo(positionMs, true);
+        player.seekTo(positionMs, true);
         updateProgress();
     }
 
@@ -75,25 +76,29 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     }
 
     private void updateProgress() {
-        if (listener.isRelease()) return;
-        long duration = listener.getDuration();
-        long position = listener.getPosition();
-        long buffered = listener.getBuffered();
+        if (player.isRelease()) return;
+        long duration = player.getDuration();
+        long position = player.getPosition();
+        long buffered = player.getBuffered();
         boolean positionChanged = position != currentPosition;
         boolean durationChanged = duration != currentDuration;
+        boolean bufferedChanged = buffered != currentBuffered;
         currentDuration = duration;
         currentPosition = position;
+        currentBuffered = buffered;
         if (durationChanged) {
             timeBar.setDuration(duration);
-            durationView.setText(listener.stringToTime(duration < 0 ? 0 : duration));
+            durationView.setText(player.stringToTime(duration < 0 ? 0 : duration));
         }
         if (positionChanged && !scrubbing) {
             timeBar.setPosition(position);
+            positionView.setText(player.stringToTime(position < 0 ? 0 : position));
+        }
+        if (bufferedChanged) {
             timeBar.setBufferedPosition(buffered);
-            positionView.setText(listener.stringToTime(position < 0 ? 0 : position));
         }
         removeCallbacks(runnable);
-        if (listener.isPlaying()) {
+        if (player.isPlaying()) {
             postDelayed(runnable, delayMs(position));
         } else {
             postDelayed(runnable, MAX_UPDATE_INTERVAL_MS);
@@ -103,7 +108,7 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     private long delayMs(long position) {
         long mediaTimeUntilNextFullSecondMs = 1000 - position % 1000;
         long mediaTimeDelayMs = Math.min(timeBar.getPreferredUpdateDelay(), mediaTimeUntilNextFullSecondMs);
-        long delayMs = (long) (mediaTimeDelayMs / listener.getSpeed());
+        long delayMs = (long) (mediaTimeDelayMs / player.getSpeed());
         return Util.constrainValue(delayMs, MIN_UPDATE_INTERVAL_MS, MAX_UPDATE_INTERVAL_MS);
     }
 
@@ -116,12 +121,12 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     @Override
     public void onScrubStart(@NonNull TimeBar timeBar, long position) {
         scrubbing = true;
-        positionView.setText(listener.stringToTime(position));
+        positionView.setText(player.stringToTime(position));
     }
 
     @Override
     public void onScrubMove(@NonNull TimeBar timeBar, long position) {
-        positionView.setText(listener.stringToTime(position));
+        positionView.setText(player.stringToTime(position));
     }
 
     @Override

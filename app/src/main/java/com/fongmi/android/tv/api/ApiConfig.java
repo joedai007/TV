@@ -11,7 +11,7 @@ import com.fongmi.android.tv.bean.Rule;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.Utils;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
@@ -40,6 +40,7 @@ public class ApiConfig {
     private JarLoader jarLoader;
     private PyLoader pyLoader;
     private JsLoader jsLoader;
+    private boolean loadLive;
     private Config config;
     private Parse parse;
     private String wall;
@@ -92,6 +93,7 @@ public class ApiConfig {
         this.jarLoader = new JarLoader();
         this.pyLoader = new PyLoader();
         this.jsLoader = new JsLoader();
+        this.loadLive = false;
         return this;
     }
 
@@ -113,6 +115,7 @@ public class ApiConfig {
         this.jarLoader.clear();
         this.pyLoader.clear();
         this.jsLoader.clear();
+        this.loadLive = true;
         return this;
     }
 
@@ -126,7 +129,6 @@ public class ApiConfig {
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
-            LiveConfig.get().load();
             e.printStackTrace();
         }
     }
@@ -156,9 +158,9 @@ public class ApiConfig {
     private void parseConfig(JsonObject object, Callback callback) {
         try {
             initSite(object);
-            initLive(object);
             initParse(object);
             initOther(object);
+            if (loadLive && object.has("lives")) initLive(object);
             jarLoader.parseJar("", Json.safeString(object, "spider"));
             config.json(object.toString()).update();
             App.post(callback::success);
@@ -184,12 +186,9 @@ public class ApiConfig {
     }
 
     private void initLive(JsonObject object) {
-        Config temp = null;
-        boolean live = object.has("lives");
-        boolean same = LiveConfig.get().isSame(config.getUrl());
-        if (live) temp = Config.find(config, 1).update();
-        if (live && same) LiveConfig.get().clear().config(temp).parse(object);
-        else LiveConfig.get().load();
+        Config temp = Config.find(config, 1);
+        boolean sync = LiveConfig.get().needSync(config.getUrl());
+        if (sync) LiveConfig.get().clear().config(temp).parse(object);
     }
 
     private void initParse(JsonObject object) {
@@ -214,24 +213,24 @@ public class ApiConfig {
     private String parseApi(String api) {
         if (TextUtils.isEmpty(api)) return api;
         if (api.startsWith("http")) return api;
-        if (api.startsWith("file")) return Utils.convert(api);
-        if (api.endsWith(".js")) return parseApi(Utils.convert(config.getUrl(), api));
+        if (api.startsWith("file")) return UrlUtil.convert(api);
+        if (api.endsWith(".js")) return parseApi(UrlUtil.convert(config.getUrl(), api));
         return api;
     }
 
     private String parseExt(String ext) {
         if (TextUtils.isEmpty(ext)) return ext;
         if (ext.startsWith("http")) return ext;
-        if (ext.startsWith("file")) return Utils.convert(ext);
+        if (ext.startsWith("file")) return UrlUtil.convert(ext);
         if (ext.startsWith("img+")) return Decoder.getExt(ext);
         if (ext.contains("http") || ext.contains("file")) return ext;
-        if (ext.endsWith(".txt") || ext.endsWith(".json") || ext.endsWith(".py") || ext.endsWith(".js")) return parseExt(Utils.convert(config.getUrl(), ext));
+        if (ext.endsWith(".txt") || ext.endsWith(".json") || ext.endsWith(".py") || ext.endsWith(".js")) return parseExt(UrlUtil.convert(config.getUrl(), ext));
         return ext;
     }
 
-    public Spider getCSP(Site site) {
+    public Spider getSpider(Site site) {
         boolean js = site.getApi().contains(".js");
-        boolean py = site.getApi().startsWith("py_");
+        boolean py = site.getApi().contains(".py");
         boolean csp = site.getApi().startsWith("csp_");
         if (py) return pyLoader.getSpider(site.getKey(), site.getApi(), site.getExt());
         else if (js) return jsLoader.getSpider(site.getKey(), site.getApi(), site.getExt(), site.getJar());
@@ -367,7 +366,7 @@ public class ApiConfig {
 
     private void setWall(String wall) {
         this.wall = wall;
-        boolean load = !TextUtils.isEmpty(wall) && WallConfig.get().isSame(wall);
+        boolean load = !TextUtils.isEmpty(wall) && WallConfig.get().needSync(wall);
         if (load) WallConfig.get().config(Config.find(wall, config.getName(), 2).update());
     }
 }

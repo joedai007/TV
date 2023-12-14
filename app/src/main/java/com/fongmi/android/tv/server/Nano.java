@@ -10,6 +10,7 @@ import com.fongmi.android.tv.server.process.Local;
 import com.fongmi.android.tv.server.process.Process;
 import com.fongmi.android.tv.utils.M3U8;
 import com.github.catvod.Init;
+import com.google.common.net.HttpHeaders;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -55,6 +56,13 @@ public class Nano extends NanoHTTPD {
         return newFixedLengthResponse(status, MIME_PLAINTEXT, text);
     }
 
+    public static Response redirect(String url, Map<String, String> headers) {
+        Response response = newFixedLengthResponse(Response.Status.REDIRECT, MIME_HTML, "");
+        for (Map.Entry<String, String> entry : headers.entrySet()) response.addHeader(entry.getKey(), entry.getValue());
+        response.addHeader(HttpHeaders.LOCATION, url);
+        return response;
+    }
+
     @Override
     public Response serve(IHTTPSession session) {
         String url = session.getUri().trim();
@@ -62,7 +70,7 @@ public class Nano extends NanoHTTPD {
         if (session.getMethod() == Method.POST) parse(session, files);
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'));
         if (url.startsWith("/m3u8")) return m3u8(session);
-        if (url.startsWith("/proxy")) return proxy(session.getParms());
+        if (url.startsWith("/proxy")) return proxy(session);
         if (url.startsWith("/tvbus")) return success(LiveConfig.getResp());
         if (url.startsWith("/device")) return success(Device.get().toString());
         if (url.startsWith("/license")) return success(new String(Base64.decode(url.substring(9), Base64.DEFAULT)));
@@ -70,7 +78,7 @@ public class Nano extends NanoHTTPD {
         return getAssets(url.substring(1));
     }
 
-    private void parse(NanoHTTPD.IHTTPSession session, Map<String, String> files) {
+    private void parse(IHTTPSession session, Map<String, String> files) {
         String ct = session.getHeaders().get("content-type");
         if (ct != null && ct.toLowerCase().contains("multipart/form-data") && !ct.toLowerCase().contains("charset=")) {
             Matcher matcher = Pattern.compile("[ |\t]*(boundary[ |\t]*=[ |\t]*['|\"]?[^\"^'^;^,]*['|\"]?)", Pattern.CASE_INSENSITIVE).matcher(ct);
@@ -84,19 +92,18 @@ public class Nano extends NanoHTTPD {
     }
 
     private Response m3u8(IHTTPSession session) {
-        try {
-            String url = session.getParms().get("url");
-            String result = M3U8.get(url, session.getHeaders());
-            return newChunkedResponse(Response.Status.OK, MIME_PLAINTEXT, new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception e) {
-            return error(e.getMessage());
-        }
+        String url = session.getParms().get("url");
+        String result = M3U8.get(url, session.getHeaders());
+        if (result.isEmpty()) return redirect(url, session.getHeaders());
+        return newChunkedResponse(Response.Status.OK, MIME_PLAINTEXT, new ByteArrayInputStream(result.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private Response proxy(Map<String, String> params) {
+    private Response proxy(IHTTPSession session) {
         try {
+            Map<String, String> params = session.getParms();
+            params.putAll(session.getHeaders());
             Object[] rs = ApiConfig.get().proxyLocal(params);
-            return newChunkedResponse(Response.Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);
+            return rs[0] instanceof Response ? (Response) rs[0] : newChunkedResponse(Response.Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);
         } catch (Exception e) {
             return error(e.getMessage());
         }

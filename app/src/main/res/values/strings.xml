@@ -35,6 +35,7 @@
     <string name="play_next">Next</string>
     <string name="play_prev">Prev</string>
     <string name="play_loop">Loop</string>
+    <string name="play_timer">Timer</string>
     <string name="play_danmu">Danmu</string>
     <string name="play_change">Change</string>
     <string name="play_forward">→</string>
@@ -71,6 +72,7 @@
     <string name="setting_player_http">HTTP method</string>
     <string name="setting_player_buffer">Buffer time</string>
     <string name="setting_player_tunnel">Tunnel mode</string>
+    <string name="setting_player_caption">Caption style</string>
     <string name="setting_player_subtitle">Subtitle size</string>
     <string name="setting_player_background">Background play</string>
     <string name="setting_decode">Decode</string>
@@ -81,6 +83,8 @@
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">Cache</string>
+    <string name="setting_backup">Backup</string>
+    <string name="setting_backup_auto">Auto</string>
     <string name="setting_version">Version</string>
     <string name="setting_storage">Permission</string>
     <string name="setting_off">Off</string>
@@ -93,6 +97,7 @@
     <string name="search_hot">Hot</string>
 
     <!-- Dialog -->
+    <string name="dialog_edit">Edit</string>
     <string name="dialog_positive">OK</string>
     <string name="dialog_negative">Cancel</string>
     <string name="dialog_config_hint">Please enter the config…</string>
@@ -176,6 +181,17 @@
     <string-array name="select_flag">
         <item>Auto</item>
         <item>Manual</item>
+    </string-array>
+
+    <string-array name="select_caption">
+        <item>Default</item>
+        <item>System</item>
+    </string-array>
+
+    <string-array name="select_track">
+        <item>Select audio track</item>
+        <item>Select video track</item>
+        <item>Select subtitle track</item>
     </string-array>
 
 </resources>
