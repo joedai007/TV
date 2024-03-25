@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
-import com.fongmi.android.tv.api.ApiConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
@@ -30,7 +30,7 @@ public class Action implements Process {
 
     @Override
     public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
-        return path.equals("/action");
+        return "/action".equals(path);
     }
 
     @Override
@@ -39,27 +39,28 @@ public class Action implements Process {
         switch (Objects.requireNonNullElse(params.get("do"), "")) {
             case "search":
                 onSearch(params);
-                break;
+                return Nano.success();
             case "push":
                 onPush(params);
-                break;
+                return Nano.success();
             case "setting":
                 onSetting(params);
-                break;
+                return Nano.success();
             case "file":
                 onFile(params);
-                break;
+                return Nano.success();
             case "refresh":
                 onRefresh(params);
-                break;
+                return Nano.success();
             case "cast":
                 onCast(params);
-                break;
+                return Nano.success();
             case "sync":
                 onSync(params);
-                break;
+                return Nano.success();
+            default:
+                return Nano.error(null);
         }
-        return Nano.success();
     }
 
     private void onSearch(Map<String, String> params) {
@@ -76,8 +77,9 @@ public class Action implements Process {
 
     private void onSetting(Map<String, String> params) {
         String text = params.get("text");
+        String name = params.get("name");
         if (TextUtils.isEmpty(text)) return;
-        ServerEvent.setting(text);
+        ServerEvent.setting(text, name);
     }
 
     private void onFile(Map<String, String> params) {
@@ -134,7 +136,7 @@ public class Action implements Process {
 
     private void sendHistory(Device device, Map<String, String> params) {
         try {
-            String url = Objects.requireNonNullElse(params.get("url"), ApiConfig.getUrl());
+            String url = Objects.requireNonNullElse(params.get("url"), VodConfig.getUrl());
             FormBody.Builder body = new FormBody.Builder();
             body.add("url", url);
             body.add("targets", App.gson().toJson(History.get(Config.find(url, 0).getId())));
@@ -161,11 +163,11 @@ public class Action implements Process {
         Config config = Config.find(url, 0);
         boolean replace = Objects.equals(params.get("mode"), "1");
         List<History> targets = History.arrayFrom(params.get("targets"));
-        if (ApiConfig.get().getConfig().equals(config)) {
+        if (VodConfig.get().getConfig().equals(config)) {
             if (replace) History.delete(config.getId());
             History.sync(targets);
         } else {
-            ApiConfig.load(config, getCallback(targets));
+            VodConfig.load(config, getCallback(targets));
         }
     }
 
@@ -189,8 +191,8 @@ public class Action implements Process {
         List<Config> configs = Config.arrayFrom(params.get("configs"));
         List<Keep> targets = Keep.arrayFrom(params.get("targets"));
         boolean replace = Objects.equals(params.get("mode"), "1");
-        if (ApiConfig.getUrl().isEmpty() && configs.size() > 0) {
-            ApiConfig.load(Config.find(configs.get(0), 0), getCallback(configs, targets));
+        if (TextUtils.isEmpty(VodConfig.getUrl()) && configs.size() > 0) {
+            VodConfig.load(Config.find(configs.get(0), 0), getCallback(configs, targets));
         } else {
             if (replace) Keep.deleteAll();
             Keep.sync(configs, targets);

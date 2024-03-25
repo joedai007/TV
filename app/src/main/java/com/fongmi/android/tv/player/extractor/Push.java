@@ -10,12 +10,12 @@ public class Push implements Source.Extractor {
 
     @Override
     public boolean match(String scheme, String host) {
-        return scheme.equals("push");
+        return "push".equals(scheme);
     }
 
     @Override
     public String fetch(String url) throws Exception {
-        VideoActivity.start(App.activity(), url.substring(7));
+        if (App.activity() != null) VideoActivity.start(App.activity(), url.substring(7));
         SystemClock.sleep(500);
         return "";
     }

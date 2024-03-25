@@ -16,7 +16,7 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.api.WallConfig;
+import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -77,6 +77,10 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void notifyItemChanged(RecyclerView view, ArrayObjectAdapter adapter) {
         if (!view.isComputingLayout()) adapter.notifyArrayItemRangeChanged(0, adapter.size());
+    }
+
+    protected void notifyItemChanged(RecyclerView view, RecyclerView.Adapter<?> adapter) {
+        if (!view.isComputingLayout()) adapter.notifyItemRangeChanged(0, adapter.getItemCount());
     }
 
     private void setBackCallback() {

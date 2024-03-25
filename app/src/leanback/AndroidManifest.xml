@@ -77,6 +77,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
+                <data android:scheme="ftp" />
                 <data android:scheme="ed2k" />
                 <data android:scheme="magnet" />
                 <data android:scheme="thunder" />
@@ -115,6 +116,11 @@
             android:screenOrientation="sensorLandscape" />
 
         <activity
+            android:name=".ui.activity.HistoryActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <activity
             android:name=".ui.activity.KeepActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
@@ -142,6 +148,16 @@
 
         <activity
             android:name=".ui.activity.SettingPlayerActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <activity
+            android:name=".ui.activity.SettingDanmuActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape" />
+
+        <activity
+            android:name=".ui.activity.SettingCustomActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
 

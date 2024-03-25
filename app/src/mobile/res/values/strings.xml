@@ -30,11 +30,7 @@
     <string name="control_scale">Scale</string>
     <string name="control_track">Track</string>
     <string name="control_other">Other</string>
-
-    <!-- Dialog -->
-    <string name="dialog_delete_record">Delete all records?</string>
-    <string name="dialog_delete_keep">All keep records will be removed.</string>
-    <string name="dialog_delete_history">All history records will be removed.</string>
+    <string name="control_display">Display</string>
 
     <!-- Timer -->
     <string name="timer_5">5 minutes</string>
@@ -45,7 +41,6 @@
     <string name="timer_cancel">Cancel timer</string>
 
     <!-- Hint -->
-    <string name="copied">Copied</string>
     <string name="shortcut">Shortcut has been added.</string>
 
     <string-array name="select_background">

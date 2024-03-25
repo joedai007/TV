@@ -2,8 +2,6 @@ package com.fongmi.android.tv.utils;
 
 import android.net.Uri;
 
-import androidx.media3.common.util.UriUtil;
-
 import com.fongmi.android.tv.server.Server;
 import com.google.common.net.HttpHeaders;
 
@@ -36,16 +34,12 @@ public class UrlUtil {
         return path == null ? "" : path.trim();
     }
 
-    public static String convert(String baseUrl, String path) {
-        if (path.startsWith("clan")) return fixUrl(path);
-        return path.isEmpty() ? "" : UriUtil.resolve(baseUrl, path);
-    }
-
     public static String convert(String url) {
-        String host = host(url);
         String scheme = scheme(url);
-        if ("file".equals(scheme)) return Server.get().getAddress(url);
-        if ("local".equals(scheme)) return Server.get().getAddress(host);
+        if ("clan".equals(scheme)) fixUrl(url);
+        if ("local".equals(scheme)) return url.replace("local://", Server.get().getAddress(""));
+        if ("assets".equals(scheme)) return url.replace("assets://", Server.get().getAddress(""));
+        if ("file".equals(scheme)) return url.replace("file://", Server.get().getAddress("file/"));
         if ("proxy".equals(scheme)) return url.replace("proxy://", Server.get().getAddress("proxy?"));
         return url;
     }
@@ -57,9 +51,9 @@ public class UrlUtil {
     }
 
     public static String fixHeader(String key) {
-        if (key.equalsIgnoreCase(HttpHeaders.USER_AGENT)) return HttpHeaders.USER_AGENT;
-        if (key.equalsIgnoreCase(HttpHeaders.REFERER)) return HttpHeaders.REFERER;
-        if (key.equalsIgnoreCase(HttpHeaders.COOKIE)) return HttpHeaders.COOKIE;
+        if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) return HttpHeaders.USER_AGENT;
+        if (HttpHeaders.REFERER.equalsIgnoreCase(key)) return HttpHeaders.REFERER;
+        if (HttpHeaders.COOKIE.equalsIgnoreCase(key)) return HttpHeaders.COOKIE;
         return key;
     }
 }
